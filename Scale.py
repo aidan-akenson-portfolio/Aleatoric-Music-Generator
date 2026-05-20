@@ -1,20 +1,27 @@
 import random
 
+NOTE_NAMES = ['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab']
+
+SHARP_ROOTS = ['A', 'B', 'C#', 'D', 'E', 'F#']
+NOTE_NAMES_SHARPS = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
+
+FLAT_ROOTS = ['Bb', 'C', 'Eb', 'F', 'G', 'Ab']
+NOTE_NAMES_FLATS = ['A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab']
+
+MIN_LENGTH = 5
+MAX_LENGTH = 7
+
+
 class Scale():
 
     def __init__(self):
 
         # Scale size
         random.seed()
-        self._scale_len = random.randrange(5, 8)
+        self._scale_len = random.randrange(MIN_LENGTH, MAX_LENGTH + 1)
 
-        # Generate a key
-        self._root = random.choice(['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab'])
-
-        # Generate the scale in terms of intervals from the root note
+        # Generate the scale
         self._notes = self._generate_scale()
-
-        self._notes.sort()
         # FIXME checking sanity
         print(self._notes)
 
@@ -189,6 +196,20 @@ class Scale():
                 ((3 in notes) or (4 in notes)) and (7 in notes)      
             ): 
                 valid_scale = True
+        
+        # Convert back to note names
+        root_pos = random.randrange(len(NOTE_NAMES))
+        notes.sort()
+        # Ensure accidentals match
+        if NOTE_NAMES[root_pos] in SHARP_ROOTS:
+            for i in range(self._scale_len):
+                notes[i] = NOTE_NAMES_SHARPS[(notes[i] + root_pos) % len(NOTE_NAMES)]
+        else:
+            for i in range(self._scale_len):
+                notes[i] = NOTE_NAMES_FLATS[(notes[i] + root_pos) % len(NOTE_NAMES)]
+
+        # Match accidentals
+        
         return notes
 
 if __name__ == "__main__":
