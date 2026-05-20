@@ -212,6 +212,15 @@ class Scale():
         
         return notes
 
+    def __getitem__(self, scale_degree):
+        return_val = -1
+        try:
+            return_val = self._notes[scale_degree - 1]    # List is 0-indexed but scales are 1-indexed
+        except IndexError:
+            print("SCALE DEGREE", scale_degree, "DOES NOT EXIST IN A SCALE WITH", self._scale_len, "TONES.")
+            return None
+        return return_val
+
 if __name__ == "__main__":
     scale_test = Scale()
     scale_test = Scale()
