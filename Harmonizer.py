@@ -6,7 +6,7 @@ class ChordProgression():
 
     def __init__(self, scale):
         self._scale = scale
-        
+
         # Verse will not be in the key of the scale, but rather in a
         # pseudo-relative key; that is, the notes will not change,
         # but the tonic will be moved to that of a non-root triad
@@ -33,7 +33,7 @@ class ChordProgression():
         harmonic_rhythm = [1]
         num_doubles = 0
         for i in range(1, duration):
-            half_note_chance = (1 - (num_doubles / duration))
+            half_note_chance = (1 - (num_doubles / duration)) * 0.25
             whole_note_chance = 1 - half_note_chance
             num_chords_in_this_measure = int(random.choices([1, 2], weights=(whole_note_chance, half_note_chance), k=1)[0])
             if num_chords_in_this_measure > 1:
