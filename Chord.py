@@ -15,7 +15,7 @@ def major(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MAJOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     major_chord = [root]
@@ -42,7 +42,7 @@ def minor(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MINOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     minor_chord = [root]
@@ -69,7 +69,7 @@ def diminished(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MINOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     dim_chord = [root]
@@ -96,7 +96,7 @@ def augmented(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MAJOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     aug_chord = [root]
@@ -119,12 +119,39 @@ def augmented(root: str = "C", inversion: str = "root"):
             print("Unknown inversion specification provided, returning root inversion.")
 
     return aug_chord
+def sus4(root: str = "C", inversion: str = "root"):
+    root = root.capitalize()
+    inversion = inversion.lower()
+    root_pos = 0
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
+        root_pos += 1
+
+    sus_chord = [root]
+
+    if root in SHARP_ROOTS_MAJOR:
+        sus_chord.append(NOTE_NAMES_SHARPS[(root_pos + 5) % 12])
+        sus_chord.append(NOTE_NAMES_SHARPS[(root_pos + 7) % 12])
+    else:
+        sus_chord.append(NOTE_NAMES_FLATS[(root_pos + 5) % 12])
+        sus_chord.append(NOTE_NAMES_FLATS[(root_pos + 7) % 12])
+
+    match inversion:
+        case "root":
+            pass
+        case "first" | "1st":
+            sus_chord = sus_chord[-1:] + sus_chord[:-1]
+        case "second" | "2nd":
+            sus_chord = sus_chord[-2:] + sus_chord[:-2]
+        case _:
+            print("Unknown inversion specification provided, returning root inversion.")
+
+    return sus_chord
 
 def dominant7(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MAJOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     seven_chord = major(root)
@@ -152,7 +179,7 @@ def major7(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MAJOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     seven_chord = major(root)
@@ -180,7 +207,7 @@ def minor7(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MINOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     seven_chord = minor(root)
@@ -208,7 +235,7 @@ def half_dim7(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MINOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     seven_chord = diminished(root)
@@ -236,7 +263,7 @@ def dim7(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MINOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     seven_chord = diminished(root)
@@ -265,7 +292,7 @@ def dominant9(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MAJOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     nine_chord = dominant7(root)
@@ -292,7 +319,7 @@ def seven_flat_9(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MAJOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     nine_chord = dominant7(root)
@@ -319,7 +346,7 @@ def minor9(root: str = "C", inversion: str = "root"):
     root = root.capitalize()
     inversion = inversion.lower()
     root_pos = 0
-    while MINOR_ROOTS[root_pos] != root:
+    while root_pos < len(MINOR_ROOTS) and (MINOR_ROOTS[root_pos] != root) and (MAJOR_ROOTS[root_pos] != root):
         root_pos += 1
 
     nine_chord = minor7(root)

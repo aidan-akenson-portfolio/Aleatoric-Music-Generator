@@ -1,5 +1,7 @@
 import random
 
+import Chord
+
 NOTE_NAMES = ['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab']
 
 SHARP_ROOTS = ['A', 'B', 'C#', 'D', 'E', 'F#']
@@ -20,8 +22,24 @@ class Scale():
         random.seed()
         self._scale_len = random.randrange(MIN_LENGTH, MAX_LENGTH + 1)
 
-        # Generate the scale
+        # Generate the scale as intervals from the root
         self._notes = self._generate_scale()
+
+        # Also store as note names, ensuring accidentals match
+        self._note_names = [] 
+        root_pos = random.randrange(len(NOTE_NAMES))
+        if NOTE_NAMES[root_pos] in SHARP_ROOTS:
+            for i in range(self._scale_len):
+                self._note_names.append(NOTE_NAMES_SHARPS[(self._notes[i] + root_pos) % len(NOTE_NAMES)])
+        else:
+            for i in range(self._scale_len):
+                self._note_names.append(NOTE_NAMES_FLATS[(self._notes[i] + root_pos) % len(NOTE_NAMES)])
+
+        # Store diatonic chords
+        self._triads = self.get_all_chords()
+        self._sevenths = self.get_all_chords(7)
+        self._ninths = self.get_all_chords(9)
+
         # FIXME checking sanity
         print(self._notes)
 
@@ -75,10 +93,10 @@ class Scale():
 
                     # If a scale has gotten stuck, randomly change one of the values by 1 and try again
                     if search_attempts >= (11 - self._scale_len):
-                        note_mod_pos = random.randrange(1, self._scale_len)
+                        note_mod_pos = random.randrange(1, self._scale_len - 1)
                         offset = random.choice([-1, 1])
                         while (notes[note_mod_pos] + offset) in notes:
-                            note_mod_pos = random.randrange(1, self._scale_len)
+                            note_mod_pos = random.randrange(1, self._scale_len - 1)
                             offset = random.choice([-1, 1])
                         notes[note_mod_pos] += offset
                         search_attempts = 0
@@ -196,20 +214,7 @@ class Scale():
                 ((3 in notes) or (4 in notes)) and (7 in notes)      
             ): 
                 valid_scale = True
-        
-        # Convert back to note names
-        root_pos = random.randrange(len(NOTE_NAMES))
         notes.sort()
-        # Ensure accidentals match
-        if NOTE_NAMES[root_pos] in SHARP_ROOTS:
-            for i in range(self._scale_len):
-                notes[i] = NOTE_NAMES_SHARPS[(notes[i] + root_pos) % len(NOTE_NAMES)]
-        else:
-            for i in range(self._scale_len):
-                notes[i] = NOTE_NAMES_FLATS[(notes[i] + root_pos) % len(NOTE_NAMES)]
-
-        # Match accidentals
-        
         return notes
 
     def __getitem__(self, scale_degree):
@@ -220,15 +225,109 @@ class Scale():
             print("SCALE DEGREE", scale_degree, "DOES NOT EXIST IN A SCALE WITH", self._scale_len, "TONES.")
             return None
         return return_val
+    
+    def diatonic_chord(self, scale_degree, extension: int | None = None, inversion: str = "root"):
+        
+        third = "none"
+        fifth = "none"
+        seventh = "none"
+        ninth = "none"
+
+        # Find the third
+        if self._notes[scale_degree] + 3 in self._notes:
+            third = "minor"
+        elif self._notes[scale_degree] + 4 in self._notes:
+            third = "major"
+        elif self._notes[scale_degree] + 5 in self._notes:
+            third = "suspended"
+
+        # Find the fifth
+        if self._notes[scale_degree] + 6 in self._notes:
+            fifth = "diminished"
+        if self._notes[scale_degree] + 7 in self._notes:
+            fifth = "perfect"
+        if self._notes[scale_degree] + 8 in self._notes:
+            fifth = "augmented"
+
+        # Find the seventh
+        if extension == 7 or extension == 9:
+            if self._notes[scale_degree] + 9 in self._notes:
+                seventh = "diminished"
+            if self._notes[scale_degree] + 10 in self._notes:
+                seventh = "minor"
+            if self._notes[scale_degree] + 11 in self._notes:
+                seventh = "major"
+
+        # Find the ninth
+        if extension == 9:
+            if self._notes[scale_degree] + 13 in self._notes:
+                ninth = "flat"
+            if self._notes[scale_degree] + 14 in self._notes:
+                ninth = "natural"
+
+        # Return early from failed extensions so that they don't fill with triads
+        if (extension == 7 and seventh == "none") or (extension == 9 and ninth == "none"):
+            return None
+
+        # Build and return the relevant chord
+        match [third, fifth, seventh, ninth]:
+
+            # Chords with major third
+            case ["major", "perfect", "none", "none"]:
+                return Chord.major(self._note_names[scale_degree], inversion)
+            case ["major", "augmented", "none", "none"]:
+                return Chord.augmented(self._note_names[scale_degree], inversion)
+            case ["major", "perfect", "minor", "none"]:
+                return Chord.dominant7(self._note_names[scale_degree], inversion)
+            case ["major", "perfect", "major", "none"]:
+                return Chord.major7(self._note_names[scale_degree], inversion)
+            case ["major", "perfect", "minor", "perfect"]:
+                return Chord.dominant9(self._note_names[scale_degree], inversion)
+            case ["major", "perfect", "minor", "flat"]:
+                return Chord.seven_flat_9(self._note_names[scale_degree], inversion)
+
+            # Chords with minor third
+            case ["minor", "perfect", "none", "none"]:
+                return Chord.minor(self._note_names[scale_degree], inversion)
+            case ["minor", "diminished", "none", "none"]:
+                return Chord.diminished(self._note_names[scale_degree], inversion)
+            case ["minor", "perfect", "minor", "none"]:
+                return Chord.minor7(self._note_names[scale_degree], inversion)
+            case ["minor", "diminished", "minor", "none"]:
+                return Chord.half_dim7(self._note_names[scale_degree], inversion)
+            case ["minor", "diminished", "diminished", "none"]:
+                return Chord.dim7(self._note_names[scale_degree], inversion)
+            case ["minor", "perfect", "minor", "natural"]:
+                return Chord.minor9(self._note_names[scale_degree], inversion)
+        
+            # Sus4
+            case ["suspended", "perfect", "none", "none"]:
+                return Chord.sus4(self._note_names[scale_degree], inversion)
+
+            # If no viable chord was found, return None. 
+            # The caller should then create an borrowed chord.
+            case _:
+                return None
+
+    def get_all_chords(self, extension: int | None = None):
+        chords = []
+        for n in range(self._scale_len):
+            chords.append(self.diatonic_chord(n, extension=extension))
+        return chords
 
 if __name__ == "__main__":
     scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
-    scale_test = Scale()
+
+    print()
+    for t in scale_test._triads:
+        if t is not None:
+            print(t)
+    print()
+    for s in scale_test._sevenths:
+        if s is not None:
+            print(s)
+    print()
+    for n in scale_test._ninths:
+        if n is not None:
+            print(n)
+    
