@@ -20,28 +20,40 @@ class Scale():
 
         # Scale size
         random.seed()
-        self._scale_len = random.randrange(MIN_LENGTH, MAX_LENGTH + 1)
 
-        # Generate the scale as intervals from the root
-        self._notes = self._generate_scale()
 
-        # Also store as note names, ensuring accidentals match
-        self._note_names = [] 
-        root_pos = random.randrange(len(NOTE_NAMES))
-        if NOTE_NAMES[root_pos] in SHARP_ROOTS:
-            for i in range(self._scale_len):
-                self._note_names.append(NOTE_NAMES_SHARPS[(self._notes[i] + root_pos) % len(NOTE_NAMES)])
-        else:
-            for i in range(self._scale_len):
-                self._note_names.append(NOTE_NAMES_FLATS[(self._notes[i] + root_pos) % len(NOTE_NAMES)])
+        # Ensure scale has enough chords before moving forward
+        self._triads = []
+        num_triads = 0
+        while(num_triads < 3):
 
-        # Store diatonic chords
-        self._triads = self.get_all_chords()
-        self._sevenths = self.get_all_chords(7)
-        self._ninths = self.get_all_chords(9)
+            # Reset variables
+            self._triads = []
+            num_triads = 0
+            self._scale_len = random.randrange(MIN_LENGTH, MAX_LENGTH + 1)
 
-        # FIXME checking sanity
-        print(self._notes)
+            # Generate the scale as intervals from the root
+            self._notes = self._generate_scale()
+
+            # Also store as note names, ensuring accidentals match
+            self._note_names = [] 
+            root_pos = random.randrange(len(NOTE_NAMES))
+            if NOTE_NAMES[root_pos] in SHARP_ROOTS:
+                for i in range(self._scale_len):
+                    self._note_names.append(NOTE_NAMES_SHARPS[(self._notes[i] + root_pos) % len(NOTE_NAMES)])
+            else:
+                for i in range(self._scale_len):
+                    self._note_names.append(NOTE_NAMES_FLATS[(self._notes[i] + root_pos) % len(NOTE_NAMES)])
+
+            # Store diatonic chords
+            self._triads = self._get_all_chords()
+            self._sevenths = self._get_all_chords(7)
+            self._ninths = self._get_all_chords(9)
+
+            # Count the triads
+            for i in range(len(self._triads)):
+                if self._triads[i] != None:
+                    num_triads += 1
 
     # Generates a scale that:
     #   - Avoids large clusters of notes
@@ -309,7 +321,7 @@ class Scale():
             case _:
                 return None
 
-    def get_all_chords(self, extension: int | None = None):
+    def _get_all_chords(self, extension: int | None = None):
         chords = []
         for n in range(self._scale_len):
             chords.append(self.diatonic_chord(n, extension=extension))
