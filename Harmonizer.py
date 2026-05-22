@@ -13,7 +13,8 @@ class ChordProgression():
         # but the tonic will be moved to that of a non-root triad
         # (which acts as the root for a valid diatonic chord)
         verse_key = None
-        while verse_key == None:
+        verse_key_pos = 0
+        while verse_key == None or self._scale._triads[verse_key_pos] == None:
             verse_key_pos = min(random.choice([1, 2, 3]), len(self._scale._triads) - 1)
             if self._scale._triads[verse_key_pos] != None:
                 verse_key = self._scale._triads[verse_key_pos][0]
@@ -55,7 +56,7 @@ class ChordProgression():
         # Ensure the first chord is in the key of the section
         first_chord = self._scale._triads[0]
         first_chord_finder = 0
-        while first_chord[0] != key:
+        while (first_chord == None) or (first_chord[0] != key):
             first_chord = self._scale._triads[first_chord_finder]
             first_chord_finder += 1
         chords.append(first_chord)
@@ -69,9 +70,17 @@ class ChordProgression():
             root = self._scale._note_names[root_degree]
 
             # Ensure the previous chord didn't also start with the same root
+            # and that the first and last chords don't share a root
             while chords[i - 1][0] == root:
+
                 root_degree = random.randrange(self._scale._scale_len)
                 root = self._scale._note_names[root_degree]
+
+                if (i == sum(harmonic_rhythm) - 1) and root == key:
+                    root_degree = random.randrange(self._scale._scale_len)
+                    root = self._scale._note_names[root_degree]
+                    
+
 
             # Attempt to use a diatonic chord
             new_chord = self._scale._triads[root_degree]
@@ -84,6 +93,11 @@ class ChordProgression():
             # FIXME make this behaviour more sophisticated once basic functionality is working
             if new_chord is None:
                 new_chord = random.choice([Chord.major(root), Chord.minor(root)])
+
+
+            # With a 50% chance, make the last chord in the progression a 7
+            if (i == sum(harmonic_rhythm) - 1) and (random.randrange(0,1) == 1):
+                new_chord = Chord.dominant7(root)
 
             chords.append(new_chord)
 
