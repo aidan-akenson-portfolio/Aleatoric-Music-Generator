@@ -1,7 +1,8 @@
 import math
-from lib import consts
-from lib import mtof
 import numpy as np
+
+from Synth.lib import consts
+from Synth.lib import mtof
 
 class osc():
     def __init__(self, wave_type = "Sine"):

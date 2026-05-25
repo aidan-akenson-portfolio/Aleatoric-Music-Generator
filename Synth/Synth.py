@@ -2,16 +2,16 @@ import numpy as np
 import time
 import copy
 
-import MIDI_input as MIDI
-import Output_Stream
-import osc
-import ADSR
-import Filter
-import Parameter_Interface
-import IR_Reverb
+import Synth.MIDI_input as MIDI
+import Synth.Output_Stream as Output_Stream 
+import Synth.osc as osc
+import Synth.ADSR as ADSR
+import Synth.Filter as Filter
+import Synth.Parameter_Interface as Parameter_Interface
+import Synth.IR_Reverb as IR_Reverb
 
-from lib import mtof
-from lib import consts
+from Synth.lib import mtof
+from Synth.lib import consts
 
 UNUSED = -1
 

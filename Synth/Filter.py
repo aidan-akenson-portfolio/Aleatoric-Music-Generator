@@ -3,7 +3,7 @@ import numpy as np
 import scipy
 from scipy import signal
 
-from lib import consts
+from Synth.lib import consts
 
 class Filter():
     def __init__(self):

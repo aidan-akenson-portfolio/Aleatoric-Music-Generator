@@ -4,7 +4,7 @@ from scipy import signal as sg
 import soundfile as sf
 import pathlib as pl
 
-from lib import consts
+from Synth.lib import consts
 
 # Default impulse response if none specified
 def impulse():

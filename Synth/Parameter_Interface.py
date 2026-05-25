@@ -1,4 +1,4 @@
-from lib import consts
+from Synth.lib import consts
 import time
 import numpy as np
 

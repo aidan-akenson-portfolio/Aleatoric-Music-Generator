@@ -1,6 +1,6 @@
 import mido
-from lib import mtof
-from lib import consts
+from Synth.lib import mtof
+from Synth.lib import consts
 
 #Handles input from MIDI devices, translating MIDI info into note-on, note-off, frequency, and velocity values
 class MIDI_device:

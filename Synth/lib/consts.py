@@ -20,9 +20,9 @@ POLES = 2   # 2 or 4
             # Currently, 4-pole filters will run before the reverb, due to processing limitations
             # on my machine, while 2-pole filters will run after the reverb, as that sounds better.
 
-REVERB_ON = True
+REVERB_ON = False
 DRY_WET = 0.3   # Dry = 0, Wet = 1
-IR = "1"        # Indicator for which impulse response the reverb should load
+IR = "0"        # Indicator for which impulse response the reverb should load
 IR_ATTENUATION_CONSTANT = 0.1
 REVERB_MAKEUP_GAIN_CONSTANT = 2
 MAX_PARTITIONS = 256
@@ -46,7 +46,7 @@ DEVICE_NAME = ''
 INTERFACE_NAME = ''
 AUDIO_API = ''
 
-DEBUG_MODE = 3              #0 --- No debug outputs
+DEBUG_MODE = 0              #0 --- No debug outputs
                             #1 --- Simple debug outputs
                             #2 --- Verbose debug outputs
                             #3 --- Efficiency debug outputs (Does not include many other debug outputs)
@@ -115,7 +115,7 @@ MIN_RELEASE = 0.005
 INITIAL_ATTACK = 8
 INITIAL_DECAY = 127
 INITIAL_SUSTAIN = 0
-INITIAL_RELEASE = 64
+INITIAL_RELEASE = 32
 
 EXPONENTIAL_DECAY_COEFFICIENT = 3.000   # 0: linear release
                                         # 1: Standard exponential release

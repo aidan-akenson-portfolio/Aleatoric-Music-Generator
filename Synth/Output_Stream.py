@@ -1,6 +1,7 @@
 import pyaudio
-from lib import consts
 import numpy as np
+
+from Synth.lib import consts
 
 #Handles stream open, write, and close functionality
 class output:

@@ -1,4 +1,4 @@
-from lib import consts
+from Synth.lib import consts
 
 #Calculation function, can call when latency isn't first priority
 def mtof_calc(MIDI: int = -1) -> float: #default to A0
