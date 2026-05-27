@@ -9,36 +9,15 @@ class ChordProgression():
     def __init__(self, scale):
         self._scale = scale
 
-        # Verse will not be in the key of the scale, but rather in a
-        # pseudo-relative key; that is, the notes will not change,
-        # but the tonic will be moved to that of a non-root triad
-        # (which acts as the root for a valid diatonic chord)
-        verse_key = None
-        verse_key_pos = 0
-        while verse_key == None or self._scale._triads[verse_key_pos] == None:
-            verse_key_pos = min(random.choice([1, 2, 3]), len(self._scale._triads) - 1)
-            if self._scale._triads[verse_key_pos] != None:
-                verse_key = self._scale._triads[verse_key_pos][0]
-        self._verse_rhythm = self._harmonic_rhythm()
-        self._verse = self._generate_progression(verse_key, self._verse_rhythm)
-        self._verse_midi = self._to_midi(self._verse)
-
-        # Chorus is just in the key of the song
-        chorus_key = self._scale._note_names[0]
-        self._chorus_rhythm = self._harmonic_rhythm()
-        self._chorus = self._generate_progression(chorus_key, self._chorus_rhythm)
-        self._chorus_midi = self._to_midi(self._verse)
-
-        """print("\nVerse, key of ", verse_key, ": ", sep="", end=" ")
-        for v in self._verse:
-            print(v) 
-        print(self._verse_midi)
-        print("\nChorus, key of ", chorus_key, ": ", sep="", end=" ")
-        for c in self._chorus:
-            print(c) 
-        print(self._chorus_midi)"""
-
-
+        self._key = None
+        key_pos = 0
+        while self._key == None or self._scale._triads[key_pos] == None:
+            key_pos = min(random.choice([1, 2, 3]), len(self._scale._triads) - 1)
+            if self._scale._triads[key_pos] != None:
+                self._key = self._scale._triads[key_pos][0]
+        self._rhythm = self._harmonic_rhythm()
+        self._prog = self._generate_progression(self._key, self._rhythm)
+        self._midi = self._to_midi(self._prog)
 
     def _harmonic_rhythm(self):
         # Each progression is either 4 or 8 measures
@@ -60,7 +39,7 @@ class ChordProgression():
         return harmonic_rhythm
 
     def _generate_progression(self, key, harmonic_rhythm):
-        
+
         chords = []
 
         # Ensure the first chord is in the key of the section
@@ -69,7 +48,7 @@ class ChordProgression():
         while (first_chord == None) or (first_chord[0] != key):
             first_chord = self._scale._triads[first_chord_finder]
             first_chord_finder += 1
-        chords.append(first_chord)
+        chords.append(first_chord) 
             
 
         # Rest of the chords
@@ -129,15 +108,14 @@ class ChordProgression():
             
     def _to_midi(self, progression):
 
+        min_interval = [7, 3, 2, 2, 1]
+
+        # Attempt with the given inversions
         midi_prog = []
         for i in range(len(progression)):
             chord = progression[i]
             midi_vals = []
             for i in range(len(chord)):
-
-                # FIXME spacing checks don't work
-                spacing = round(9 - ((i / len(chord)) * 9))
-                max_interval = 2 * spacing
 
                 match chord[i]:
                     case "A":
@@ -145,9 +123,9 @@ class ChordProgression():
                             midi_vals.append(ntom.A_VALUES[2])
                         else:
                             j = 0
-                            while ntom.A_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.A_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.A_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.A_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.A_VALUES[j])
                     case "Bb" | "A#":
@@ -155,9 +133,9 @@ class ChordProgression():
                             midi_vals.append(ntom.BB_VALUES[2])
                         else:
                             j = 0
-                            while ntom.BB_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.BB_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.BB_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.BB_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.BB_VALUES[j])
                     case "B":
@@ -165,9 +143,9 @@ class ChordProgression():
                             midi_vals.append(ntom.B_VALUES[2])
                         else:
                             j = 0
-                            while ntom.B_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.B_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.B_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.B_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.B_VALUES[j])
                     case "C":
@@ -175,9 +153,9 @@ class ChordProgression():
                             midi_vals.append(ntom.C_VALUES[2])
                         else:
                             j = 0
-                            while ntom.C_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.C_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.C_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.C_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.C_VALUES[j])
                     case "Db" | "C#":
@@ -185,9 +163,9 @@ class ChordProgression():
                             midi_vals.append(ntom.DB_VALUES[2])
                         else:
                             j = 0
-                            while ntom.DB_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.DB_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.DB_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.DB_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.DB_VALUES[j])
                     case "D":
@@ -195,9 +173,9 @@ class ChordProgression():
                             midi_vals.append(ntom.D_VALUES[2])
                         else:
                             j = 0
-                            while ntom.D_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.D_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.D_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.D_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.D_VALUES[j])
                     case "Eb" | "D#":
@@ -205,9 +183,9 @@ class ChordProgression():
                             midi_vals.append(ntom.EB_VALUES[2])
                         else:
                             j = 0
-                            while ntom.EB_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.EB_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.EB_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.EB_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.EB_VALUES[j])
                     case "E":
@@ -215,9 +193,9 @@ class ChordProgression():
                             midi_vals.append(ntom.E_VALUES[2])
                         else:
                             j = 0
-                            while ntom.E_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.E_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.E_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.E_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.E_VALUES[j])
                     case "F":
@@ -225,9 +203,9 @@ class ChordProgression():
                             midi_vals.append(ntom.F_VALUES[2])
                         else:
                             j = 0
-                            while ntom.F_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.F_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.F_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.F_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.F_VALUES[j])
                     case "Gb" | "F#":
@@ -235,9 +213,9 @@ class ChordProgression():
                             midi_vals.append(ntom.GB_VALUES[2])
                         else:
                             j = 0
-                            while ntom.GB_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.GB_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.GB_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.GB_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.GB_VALUES[j])
                     case "G":
@@ -245,9 +223,9 @@ class ChordProgression():
                             midi_vals.append(ntom.G_VALUES[2])
                         else:
                             j = 0
-                            while ntom.G_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.G_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.G_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.G_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.G_VALUES[j])
                     case "Ab" | "G#":
@@ -255,9 +233,9 @@ class ChordProgression():
                             midi_vals.append(ntom.AB_VALUES[2])
                         else:
                             j = 0
-                            while ntom.AB_VALUES[j] < midi_vals[i - 1] + spacing:
+                            while ntom.AB_VALUES[j] < midi_vals[i - 1] + min_interval[i]:
                                 j += 1
-                            if ntom.AB_VALUES[j] - max_interval > midi_vals[i - 1]:
+                            if ntom.AB_VALUES[j] > 70:
                                 j -= 1
                             midi_vals.append(ntom.AB_VALUES[j])
                     case _:
@@ -270,9 +248,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.A_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.A_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.A_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.A_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.A_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.A_VALUES[j])
                                 case "Bb" | "A#":
@@ -280,9 +258,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.BB_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.BB_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.BB_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.BB_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.BB_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.BB_VALUES[j])
                                 case "B":
@@ -290,9 +268,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.B_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.B_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.B_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.B_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.B_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.B_VALUES[j])
                                 case "C":
@@ -300,9 +278,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.C_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.C_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.C_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.C_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.C_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.C_VALUES[j])
                                 case "Db" | "C#":
@@ -310,9 +288,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.DB_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.DB_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.DB_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.DB_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.DB_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.DB_VALUES[j])
                                 case "D":
@@ -320,9 +298,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.D_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.D_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.D_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.D_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.D_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.D_VALUES[j])
                                 case "Eb" | "D#":
@@ -330,9 +308,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.EB_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.EB_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.EB_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.EB_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.EB_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.EB_VALUES[j])
                                 case "E":
@@ -340,9 +318,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.E_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.E_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.E_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.E_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.E_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.E_VALUES[j])
                                 case "F":
@@ -350,9 +328,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.F_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.F_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.F_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.F_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.F_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.F_VALUES[j])
                                 case "Gb" | "F#":
@@ -360,9 +338,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.GB_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.GB_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.GB_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.GB_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.GB_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.GB_VALUES[j])
                                 case "G":
@@ -370,9 +348,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.G_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.G_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.G_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.G_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.G_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.G_VALUES[j])
                                 case "Ab" | "G#":
@@ -380,9 +358,9 @@ class ChordProgression():
                                         multi_chord_midi.append(ntom.AB_VALUES[2])
                                     else:
                                         j = 0
-                                        while ntom.AB_VALUES[j] < multi_chord_midi[m - 1] + spacing:
+                                        while ntom.AB_VALUES[j] < multi_chord_midi[m - 1] + min_interval[i]:
                                             j += 1
-                                        if ntom.AB_VALUES[j] - max_interval > multi_chord_midi[m - 1]:
+                                        if ntom.AB_VALUES[j] > 70:
                                             j -= 1
                                         multi_chord_midi.append(ntom.AB_VALUES[j])
                                 case _:
@@ -390,6 +368,24 @@ class ChordProgression():
                         midi_prog.append(multi_chord_midi)
             if midi_vals != [] and midi_vals is not None:
                 midi_prog.append(midi_vals)
+
+        # Fix some clustering issues
+        for i in midi_prog:
+
+            # If the root is not the lowest note, lower it an octave
+            if i[0] > i[1]:
+                i[0] -= 12
+
+            # Check all min intervals and raise an octave where needed
+            needs_raise = [False] * len(i)
+            for j in range(1, len(i)):
+                if i[j] - i[j - 1] < min_interval[j - 1]:
+                    needs_raise[j] = True
+            for j in range(len(i)):
+                if needs_raise[j]:
+                    i[j] += 12
+
+
         return midi_prog
     
 if __name__ == "__main__":
