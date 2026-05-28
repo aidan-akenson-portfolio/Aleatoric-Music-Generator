@@ -2,11 +2,16 @@ import random
 import numpy as np
 
 import Scale
+import ntom
 
 SIGNATURE = 4
 
 class Melody(Scale.Scale):
+
     def __init__(self, len: int = 4):
+
+        super().__init__()
+        
         random.seed()
         self._8th_note_grid = self._gen_rhythm(len)
         print(self._8th_note_grid)
@@ -152,11 +157,65 @@ class Melody(Scale.Scale):
 
     def _gen_pitches(self):
         pitches = []
+        root = -1
+        match self._note_names[0]:
+            case "A":
+                root = ntom.AB_VALUES[2]
+                if root < 52:
+                    root = ntom.AB_VALUES[3]
+            case "Bb" | "A#":
+                root = ntom.BB_VALUES[2]
+                if root < 52:
+                    root = ntom.BB_VALUES[3]
+            case "B":
+                root = ntom.B_VALUES[2]
+                if root < 52:
+                    root = ntom.B_VALUES[3]
+            case "C":
+                root = ntom.C_VALUES[2]
+                if root < 52:
+                    root = ntom.C_VALUES[3]
+            case "Db" | "C#":
+                root = ntom.DB_VALUES[2]
+                if root < 52:
+                    root = ntom.DB_VALUES[3]
+            case "D":
+                root = ntom.D_VALUES[2]
+                if root < 52:
+                    root = ntom.DB_VALUES[3]
+            case "Eb" | "D#":
+                root = ntom.EB_VALUES[2]
+                if root < 52:
+                    root = ntom.EB_VALUES[3]
+            case "E":
+                root = ntom.E_VALUES[2]
+                if root < 52:
+                    root = ntom.E_VALUES[3]
+            case "F":
+                root = ntom.F_VALUES[2]
+                if root < 52:
+                    root = ntom.F_VALUES[3]
+            case "Gb" | "F#":
+                root = ntom.GB_VALUES[2]
+                if root < 52:
+                    root = ntom.GB_VALUES[3]
+            case "G":
+                root = ntom.G_VALUES[2]
+                if root < 52:
+                    root = ntom.G_VALUES[3]
+            case "Ab" | "G#":
+                root = ntom.AB_VALUES[2]
+                if root < 52:
+                    root = ntom.AB_VALUES[3]
+            case _:
+                print("Cannot convert value to MIDI:", self._note_names[0])
         for i in range(len(self._8th_note_grid)):
 
             if self._8th_note_grid[i] != 0:
                 # FIXME just to test
-                pitches.append(65)
+                offset = self._notes[random.randrange(self._scale_len - 1)]
+                pitches.append(min(72, root + offset))
+            
 
         return pitches
                

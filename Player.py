@@ -50,7 +50,7 @@ class Player():
                 # New chord time yay
                 if i % 8 == 0:
 
-                    print("Measure #", (i + 1) * measure, "\t\tChord: ", self._verse._midi[chord - 1], sep="")
+                    print("Measure #", measure, "\t\tChord: ", self._verse._midi[chord - 1], sep="")
 
                     chord = chord % len(self._verse._midi)
                     measure = measure % len(self._verse._rhythm)
@@ -80,14 +80,14 @@ class Player():
                         holding = False
                 if self._melody._8th_note_grid[i] == 1 or self._melody._8th_note_grid[i] == 2: 
                     self._lead.handleMessage(mido.Message(type='note_on', note=self._melody._pitches[self._melody._pitch_index]))
-                if self._melody._8th_note_grid[i] == 3:
-                    holding = True
-
-                    # FIXME melody should probably have a method to do this itself
                     last_note = self._melody._pitches[self._melody._pitch_index]
                     self._melody._pitch_index += 1
-                    if self._melody._pitch_index >= len(self._melody._pitches):
-                        self._melody._pitch_index = 0
+                if self._melody._8th_note_grid[i] == 3:
+                    if not holding:
+                        self._melody._pitch_index += 1
+                        if self._melody._pitch_index >= len(self._melody._pitches):
+                            self._melody._pitch_index = 0
+                    holding = True
 
 
                 time.sleep(BEAT_INTERVAL / 2)
