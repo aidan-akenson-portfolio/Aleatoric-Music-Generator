@@ -26,13 +26,15 @@ class Player():
         self._chords.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=1))
         self._chords.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=100))
         self._chords.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=32))
+        self._chords.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=127))
 
         self._lead = Synth.Synth()
         self._lead.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=64))
         self._lead.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=8))
         self._lead.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=1))
-        self._lead.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=64))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=32))
         self._lead.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=8))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=32))
 
 
     def play(self):
@@ -79,6 +81,8 @@ class Player():
                         self._lead.handleMessage(mido.Message(type='note_off', note=last_note))
                         holding = False
                 if self._melody._8th_note_grid[i] == 1 or self._melody._8th_note_grid[i] == 2: 
+                    if self._melody._pitch_index >= len(self._melody._pitches):
+                        self._melody._pitch_index = 0
                     self._lead.handleMessage(mido.Message(type='note_on', note=self._melody._pitches[self._melody._pitch_index]))
                     last_note = self._melody._pitches[self._melody._pitch_index]
                     self._melody._pitch_index += 1

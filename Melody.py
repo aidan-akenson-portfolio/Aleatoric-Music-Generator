@@ -92,13 +92,15 @@ class Melody(Scale.Scale):
                 new_pos = None
                 num_notes_so_far = 1    # Count the first note when considering density
                     
-                while num_notes_so_far < num_notes_in_phrase:
+                attempts = 0
+                while num_notes_so_far < num_notes_in_phrase and num_notes_so_far < len(grid) - i:
                     new_pos = i + random.randrange(1, phrase_len)
                     # print("Attempting to generate an index of a new note:", new_pos)
-                    while (new_pos in within_phrase_positions) or (new_pos > pos_end) or (grid[new_pos] != 0):
+                    while ((new_pos in within_phrase_positions) or (new_pos > pos_end) or (grid[new_pos] != 0)) and attempts < 20:
                         offset_1 = random.randrange(1, phrase_len)
                         offset_2 = random.randrange(1, phrase_len + 1)
                         new_pos = min((len(grid) - offset_1), int(i + offset_2))
+                        attempts += 1
                         # print("Attempting to generate an index of a new note:", new_pos)
                     within_phrase_positions.append(new_pos)
                     # print("Adding note at index", new_pos)

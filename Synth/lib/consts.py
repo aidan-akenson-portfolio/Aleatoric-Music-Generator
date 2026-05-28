@@ -20,14 +20,14 @@ POLES = 2   # 2 or 4
             # Currently, 4-pole filters will run before the reverb, due to processing limitations
             # on my machine, while 2-pole filters will run after the reverb, as that sounds better.
 
-REVERB_ON = False
+REVERB_ON = True
 DRY_WET = 0.3   # Dry = 0, Wet = 1
-IR = "0"        # Indicator for which impulse response the reverb should load
+IR = "2"        # Indicator for which impulse response the reverb should load
 IR_ATTENUATION_CONSTANT = 0.1
 REVERB_MAKEUP_GAIN_CONSTANT = 2
 MAX_PARTITIONS = 256
 MIN_PARTITIONS = 4
-NUM_IR_PARTITIONS = 128  # Lower => faster computation, at the cost of reverb accuracy, duration
+NUM_IR_PARTITIONS = 32  # Lower => faster computation, at the cost of reverb accuracy, duration
                          # Higher => Longer, more accurate reverb, at the cost of computation
 # =================================================
 
