@@ -1,5 +1,6 @@
 import Harmonizer
 import Scale
+import Melody
 import ntom
 from Synth import Synth
 from Synth.lib import consts
@@ -17,6 +18,7 @@ class Player():
     def __init__(self):
         self._scale = Scale.Scale()
         self._verse = Harmonizer.ChordProgression(self._scale)
+        self._melody = Melody.Melody(4) # FIXME duration shouldn't be this arbitrary
 
         self._chords = Synth.Synth()
         self._chords.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=1))
@@ -26,42 +28,72 @@ class Player():
         self._chords.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=32))
 
         self._lead = Synth.Synth()
-        self._chords.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=2))
-        self._chords.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=16))
-        self._chords.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=64))
-        self._chords.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=100))
-        self._chords.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=3))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=64))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=8))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=1))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=64))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=8))
 
 
     def play(self):
 
         # FIXME crude demo implmentation
         print(self._verse._midi, self._verse._rhythm)
+
+        measure = 1
+        next_measure = False
+        chord = 1
         for i in range(4):
 
-            measure = 1
-            next_measure = False
-            chord = 1
+            for i in range(len(self._melody._8th_note_grid)):
 
-            while measure <= len(self._verse._rhythm) and chord <= len(self._verse._midi):
+                # New chord time yay
+                if i % 8 == 0:
 
-                print("Measure #", measure, "\t\tChord: ", self._verse._midi[chord - 1], sep="")
+                    print("Measure #", (i + 1) * measure, "\t\tChord: ", self._verse._midi[chord - 1], sep="")
 
-                for n in self._verse._midi[chord - 1]:
-                    self._chords.handleMessage(mido.Message('note_on', note=n))
-                time.sleep(BEAT_INTERVAL * (SIGNATURE / self._verse._rhythm[measure - 1]))
-                for n in self._verse._midi[chord - 1]:
-                    self._chords.handleMessage(mido.Message('note_off', note=n))
+                    chord = chord % len(self._verse._midi)
+                    measure = measure % len(self._verse._rhythm)
 
-                if self._verse._rhythm[measure - 1] == 1:
-                    measure += 1
-                elif next_measure:
-                    measure += 1
-                    next_measure = False
-                else:
-                    next_measure = True
+                    for n in self._verse._midi[chord - 1]:
+                        self._chords.handleMessage(mido.Message(type='note_on', note=n))
                 
-                chord += 1
+                    if chord > 1:
+                        for n in self._verse._midi[chord - 2]:
+                            self._chords.handleMessage(mido.Message('note_off', note=n))
+
+                    if self._verse._rhythm[measure - 1] == 1:
+                        measure += 1
+                    elif next_measure:
+                        measure += 1
+                        next_measure = False
+                    else:
+                        next_measure = True 
+                    chord += 1
+
+
+                last_note = -1
+                holding = False
+                if self._melody._8th_note_grid[i] == 0:
+                    if holding and (last_note > 0 or last_note == self._melody._pitches[self._melody._pitch_index]):
+                        self._lead.handleMessage(mido.Message(type='note_off', note=last_note))
+                        holding = False
+                if self._melody._8th_note_grid[i] == 1 or self._melody._8th_note_grid[i] == 2: 
+                    self._lead.handleMessage(mido.Message(type='note_on', note=self._melody._pitches[self._melody._pitch_index]))
+                if self._melody._8th_note_grid[i] == 3:
+                    holding = True
+
+                    # FIXME melody should probably have a method to do this itself
+                    last_note = self._melody._pitches[self._melody._pitch_index]
+                    self._melody._pitch_index += 1
+                    if self._melody._pitch_index >= len(self._melody._pitches):
+                        self._melody._pitch_index = 0
+
+
+                time.sleep(BEAT_INTERVAL / 2)
+                
+                
+                
 
 
 
