@@ -1,40 +1,39 @@
 import random
+import numpy as np
+
 import Scale
 
 SIGNATURE = 4
 
 class Melody(Scale.Scale):
     def __init__(self, len: int = 4):
+        random.seed()
         self._8th_note_grid = self._gen_rhythm(len)
+        print(self._8th_note_grid)
 
     def _gen_rhythm(self, measures: int = 4):
         # Grid of eighth notes
         grid = []
         for i in range(measures * SIGNATURE * 2):
-            grid.append([0])
+            grid.append(0)
 
         # Limit the number of phrases proportionally to the duration of the melody
-        num_phrases = [measures // 2, (measures * 3) // 2]
+        num_phrases = [random.choice([measures // 2, measures // 2 + 1]), random.choice([(measures * 3) // 2 - 1, (measures * 3) // 2])]
         min_phrase_offset = SIGNATURE * 2
 
-        # First go through and generate the "seeds" of phrases
+        # First go through and generate the "seeds" of phrases, denoted as ones.
         seeds = 0
         pos = 0
-        previous_seed_pos = random.randrange(0, 3)
+        previous_seed_pos = random.randrange(0, 4)  # Starting note
         new_seed_chance = 33        # 0-100
-
-
-        # FIXME infinite recursion here sometimes??
         grid[previous_seed_pos] = 1
         while pos < len(grid) and (seeds < num_phrases[0] or seeds > num_phrases[1]):
 
             # If valid position for a seed to generate
             if abs(pos - previous_seed_pos) > min_phrase_offset:
 
-                print(pos, new_seed_chance)
-
                 # Attempt to generate a seed
-                if random.randrange(0, 100) > new_seed_chance:
+                if random.randrange(0, 100) < new_seed_chance:
                     grid[pos] = 1
 
                 # If succeeded, update trackers
@@ -56,9 +55,89 @@ class Melody(Scale.Scale):
             if pos >= len(grid) and (seeds < num_phrases[0] or seeds > num_phrases[1]):
                 pos = 0
 
-        print(grid)
+        print("\n\nSEED POSITIONS:", grid)
+
+        # Now generate the rhythm for each phrase
+        print("\n\nADDITIONAL NOTES")
+        for i in range(len(grid)):
+            print()
+            print()
+            print("==========", i, "==========")
+            if grid[i] == 0:
+                pass
+            if grid[i] == 2:
+                print("Added note at index", i)
+            elif grid[i] == 1:
+                pos_start = i
+                while pos_start < len(grid) and grid[pos_start] != 1:
+                    pos_start += 1
+                pos_end = int(min(pos + 1, len(grid)))
+                while  pos_end < len(grid) and grid[pos_end] != 1:
+                    pos_end += 1
+                phrase_len = min(10, max(pos_end - pos_start, 2))
+
+                num_notes_in_phrase = random.randrange(2, max(3, phrase_len // 2))
+                print("This phrase contains", num_notes_in_phrase, "notes")
+                within_phrase_positions = []
+                new_pos = None
+                num_notes_so_far = 1    # Count the first note when considering density
+                    
+                while num_notes_so_far < num_notes_in_phrase:
+                    new_pos = i + random.randrange(1, phrase_len)
+                    print("Attempting to generate an index of a new note:", new_pos)
+                    while (new_pos in within_phrase_positions) or (new_pos > pos_end) or (grid[new_pos] != 0):
+                        new_pos = int(i + (random.randrange(1, phrase_len)))
+                        print("Attempting to generate an index of a new note:", new_pos)
+                    within_phrase_positions.append(new_pos)
+                    print("Adding note at index", new_pos)
+                    num_notes_so_far += 1
+                        
+                # Additional new notes in the phrase are denoted as twos
+                for j in within_phrase_positions:
+                    grid[j % len(grid)] = 2
+
+
+        # Generate time until release from each played note
+        print("\n\nHOLD TIMING")
+        for i in range(len(grid)):
+            print()
+            print()
+            print("==========", i, "==========")
+            if grid[i] != 0:
+                pass
+            if grid[i] == 0 and (grid[j % len(grid) - 1] != 0):
+                # Held notes are denoted as threes
+                print(i % len(grid), grid[i % len(grid)], )
+                weight = 0.3
+                # Notes that have a long time until the next note are more likely to be held
+                until_next_note = 1
+                while[j % len(grid) + until_next_note] == 0:
+                    until_next_note += 1
+                print("additional weight given due to length bonus:", min(0.5, until_next_note * 0.1), "due to having", until_next_note, "notes until the next")
+                weight += min(0.5, until_next_note * 0.1)
+
+                # Notes that previously had an initial value rather than a continued sustain
+                # should be weighted higher, but only slightly
+                if grid[j % len(grid) - 1] != 3:
+                    print("2 branch taken")
+                    weight += 0.2
+
+                print("resulting weight:", weight)
+
+                control_val = random.randrange(1, 100)
+                likelihood = weight * 100
+                if control_val < likelihood and j < len(grid):
+                    print("Weight check passed:", likelihood, ">", control_val)
+                    grid[j] = 3
+                else:
+                    print("Weight check failed:", likelihood, "<", control_val)
+                    
+
+        return grid
                 
 
 
 if __name__ == "__main__":
+
+    sum = 0
     melody = Melody()
