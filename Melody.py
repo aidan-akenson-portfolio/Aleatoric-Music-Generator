@@ -14,6 +14,11 @@ class Melody(Scale.Scale):
         
         random.seed()
         self._8th_note_grid = self._gen_rhythm(len)
+        self._num_notes = 0
+        for i in self._8th_note_grid:
+            if i != 0:
+                self._num_notes += 1
+
         print(self._8th_note_grid)
 
         self._pitches = self._gen_pitches()
@@ -163,60 +168,87 @@ class Melody(Scale.Scale):
         match self._note_names[0]:
             case "A":
                 root = ntom.AB_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.AB_VALUES[3]
             case "Bb" | "A#":
                 root = ntom.BB_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.BB_VALUES[3]
             case "B":
                 root = ntom.B_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.B_VALUES[3]
             case "C":
                 root = ntom.C_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.C_VALUES[3]
             case "Db" | "C#":
                 root = ntom.DB_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.DB_VALUES[3]
             case "D":
                 root = ntom.D_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.DB_VALUES[3]
             case "Eb" | "D#":
                 root = ntom.EB_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.EB_VALUES[3]
             case "E":
                 root = ntom.E_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.E_VALUES[3]
             case "F":
                 root = ntom.F_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.F_VALUES[3]
             case "Gb" | "F#":
                 root = ntom.GB_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.GB_VALUES[3]
             case "G":
                 root = ntom.G_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.G_VALUES[3]
             case "Ab" | "G#":
                 root = ntom.AB_VALUES[2]
-                if root < 52:
+                if root < 45:
                     root = ntom.AB_VALUES[3]
             case _:
                 print("Cannot convert value to MIDI:", self._note_names[0])
-        for i in range(len(self._8th_note_grid)):
+        
+        # Each melody should lean on a couple notes in the scale to give 
+        # it more cohesive ideas.
+        favorite_notes = [root + self._notes[random.randrange(self._scale_len - 1)], root + self._notes[random.randrange(self._scale_len - 1)]]
+        while favorite_notes[1] == favorite_notes[0]:
+            favorite_notes[1] = root + self._notes[random.randrange(self._scale_len - 1)]
 
+        print(favorite_notes)
+
+        # Generate the notes   
+        num_favs = 0   
+        num_diatonic = 0
+        for i in range(len(self._8th_note_grid)):
             if self._8th_note_grid[i] != 0:
-                # FIXME just to test
-                offset = self._notes[random.randrange(self._scale_len - 1)]
-                pitches.append(min(72, root + offset))
+
+                favorite_weight = int((1 - ((num_favs * 2) / self._num_notes)) * 100)
+                diatonic_weight = int((1 - ((num_diatonic / 2) / self._num_notes)) * 100)
+
+                # First check for favorite notes
+                if random.randrange(100) < favorite_weight:
+                    pitches.append(favorite_notes[random.randrange(0,1)])
+                    num_favs += 1
+                    num_diatonic += 1
+
+                # Next, likely to generate a diatonic note
+                elif random.randrange(100) < diatonic_weight:
+                    pitches.append(root + self._notes[random.randrange(self._scale_len - 1)])
+                    num_diatonic += 1
+
+                # Else generate a random note that is within 2 half-steps of a favorite note
+                else:
+                    offset = random.choice([-2, -1, 1, 2])
+                    pitches.append(favorite_notes[random.randrange(0,1)] + offset)
             
 
         return pitches
