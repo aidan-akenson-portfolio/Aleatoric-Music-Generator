@@ -64,25 +64,33 @@ class Player():
         chorus_chance = 0.2
         bridge_chance = 0.0
         for i in range(num_sections):
-            verse_roll = verse_chance * random.randrange(100)
-            chorus_roll = chorus_chance * random.randrange(100)
-            bridge_roll = bridge_chance * random.randrange(100)
 
-            if verse_roll >= chorus_roll and verse_roll >= bridge_roll:
-                song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============VERSE============"])
-                verse_chance = 0.0
-                chorus_chance += 0.3
-                bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
-            elif chorus_roll >= bridge_roll:
-                song_structure.append([self._chorus_progression, self._chorus_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============CHORUS============"])
-                verse_chance += 0.3
-                chorus_chance = 0.0
-                bridge_chance = 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
-            else:
-                song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0], "\n============BRIDGE============"])
-                verse_chance += 0.1
-                chorus_chance += 0.6
-                bridge_chance = 0.0
+            # Prevents ending on a bridge
+            success = False
+            while not success:
+
+                verse_roll = verse_chance * random.randrange(100)
+                chorus_roll = chorus_chance * random.randrange(100)
+                bridge_roll = bridge_chance * random.randrange(100)
+
+                if verse_roll >= chorus_roll and verse_roll >= bridge_roll:
+                    song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============VERSE============"])
+                    verse_chance -= 0.8
+                    chorus_chance += 0.3
+                    bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
+                    success = True
+                elif chorus_roll >= bridge_roll:
+                    song_structure.append([self._chorus_progression, self._chorus_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============CHORUS============"])
+                    verse_chance += 0.3
+                    chorus_chance -= 0.8
+                    bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
+                    success = True
+                elif i < num_sections - 1:
+                    song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0], "\n============BRIDGE============"])
+                    verse_chance += 0.1
+                    chorus_chance += 0.6
+                    bridge_chance -= 0.8
+                    success = True
 
         return song_structure
 
@@ -94,10 +102,9 @@ class Player():
         measure = 1
         chord = 1
         until_next_chord = 0
+        last_note = -1
 
         for i in range(repetitions):
-                
-            last_note = -1
             melody._pitch_index = 0
 
             for i in range(len(melody._8th_note_grid)):
