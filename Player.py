@@ -18,13 +18,21 @@ class Player():
     def __init__(self):
         self._scale = Scale.Scale()
         self._verse_progression = Harmonizer.ChordProgression(self._scale)
-        self._verse_melody = Melody.Melody(4) # FIXME duration shouldn't be this arbitrary
+        self._verse_melody = Melody.Melody()
+
+        self._chorus_progression = Harmonizer.ChordProgression(self._scale)
+        self._chorus_melody = Melody.Melody()
+
+        self._bridge_progression = Harmonizer.ChordProgression(self._scale)
+        self._bridge_melody = Melody.Melody()
+
+        self._song_structure = self._gen_structure()
 
         self._chords = Synth.Synth()
         self._chords.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=1))
         self._chords.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=16))
         self._chords.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=1))
-        self._chords.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=100))
+        self._chords.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=60))
         self._chords.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=32))
         self._chords.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=127))
 
@@ -37,10 +45,37 @@ class Player():
         self._lead.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=64))
         self._lead.handleMessage(mido.Message('control_change', control=consts.CUTOFF_CC, value=80))
 
+    def _gen_structure(self):
+        song_structure = []
+        num_sections = random.randrange(3, 8)
+        verse_chance = 0.8
+        chorus_chance = 0.2
+        bridge_chance = 0.0
+        for i in range(num_sections):
+            verse_roll = verse_chance * random.randrange(100)
+            chorus_roll = chorus_chance * random.randrange(100)
+            bridge_roll = bridge_chance * random.randrange(100)
 
-    def play_section(self, synth_device, progression, melody, repetitions: int = 4):
+            if verse_roll >= chorus_roll and verse_roll >= bridge_roll:
+                song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4])[0]])
+                verse_chance = 0.0
+                chorus_chance += 0.3
+                bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
+            elif chorus_roll >= bridge_roll:
+                song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4])[0]])
+                verse_chance += 0.3
+                chorus_chance = 0.0
+                bridge_chance = 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
+            else:
+                song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0]])
+                verse_chance += 0.1
+                chorus_chance += 0.6
+                bridge_chance = 0.0
 
-        # FIXME crude demo implmentation
+        return song_structure
+
+    def _play_section(self, progression, melody, repetitions):
+
         print(progression._midi, progression._rhythm)
 
         measure = 1
@@ -60,11 +95,11 @@ class Player():
                     measure = measure % len(progression._rhythm)
 
                     for n in progression._midi[chord - 1]:
-                        synth_device.handleMessage(mido.Message(type='note_on', note=n))
+                        self._chords.handleMessage(mido.Message(type='note_on', note=n))
                 
                     if chord > 1:
                         for n in progression._midi[chord - 2]:
-                            synth_device.handleMessage(mido.Message('note_off', note=n))
+                            self._chords.handleMessage(mido.Message('note_off', note=n))
 
                     chord += 1
                     until_next_chord = 2 * SIGNATURE / progression._rhythm[measure - 1]
@@ -103,7 +138,9 @@ class Player():
                 time.sleep(BEAT_INTERVAL / 2)
 
     def play(self):
-        self.play_section(self._chords, self._verse_progression, self._verse_melody)       
+        for i in range(len(self._song_structure)):
+            print("SONG STRUCTURE:", self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])
+            self._play_section(self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])    
                 
                 
 
