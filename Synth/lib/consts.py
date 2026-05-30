@@ -73,7 +73,7 @@ IR_FFT_SIZE = 2 * BUFFER_SIZE
 # =============== REFERENCE VALUES ================
 
 # Polyphony
-MAX_VOICES = 6
+MAX_VOICES = 12
 
 # MIDI control values
 A_440 = 69

@@ -8,22 +8,31 @@ SIGNATURE = 4
 
 class Melody(Scale.Scale):
 
-    def __init__(self, len: int = 4):
+    def __init__(self, length: int = 4):
 
         super().__init__()
         
         random.seed()
-        self._8th_note_grid = self._gen_rhythm(len)
+        self._8th_note_grid = self._gen_rhythm(length)
         self._num_notes = 0
         for i in self._8th_note_grid:
             if i != 0:
                 self._num_notes += 1
 
-        print(self._8th_note_grid)
+        #print(self._8th_note_grid)
 
         self._pitches = self._gen_pitches()
         self._pitch_index = 0
-        print(self._pitches)
+        #print(self._pitches)
+
+        self.simple_grid = []
+        for i in range(len(self._8th_note_grid)):
+            if self._8th_note_grid[i] == 2:
+                self.simple_grid.append(1)
+            elif self._8th_note_grid[i] == 3:
+                self.simple_grid.append(0)
+            else:
+                self.simple_grid.append(self._8th_note_grid[i])
 
     def _gen_rhythm(self, measures: int = 4):
         # Grid of eighth notes
@@ -46,8 +55,19 @@ class Melody(Scale.Scale):
             # If valid position for a seed to generate
             if abs(pos - previous_seed_pos) > min_phrase_offset:
 
-                # Attempt to generate a seed
-                if random.randrange(0, 100) < new_seed_chance:
+                # More likely if on a downbeat
+                rhythm_chance = -2
+                if (pos % 2) == 0:
+                    rhythm_chance = 0
+                elif (pos % 4) == 0:
+                    rhythm_chance = 2
+                elif (pos % 8) == 0:
+                    rhythm_chance = 4
+                else:
+                    rhythm_chance = -2
+
+                # Attempt to generate a seed, 
+                if random.randrange(0, 100) < new_seed_chance + (rhythm_chance * 10):
                     grid[pos] = 1
 
                 # If succeeded, update trackers
@@ -223,15 +243,16 @@ class Melody(Scale.Scale):
         while favorite_notes[1] == favorite_notes[0]:
             favorite_notes[1] = root + self._notes[random.randrange(self._scale_len - 1)]
 
-        print(favorite_notes)
-
         # Generate the notes   
         num_favs = 0   
         num_diatonic = 0
+        pitch_pos = 0
         for i in range(len(self._8th_note_grid)):
             if self._8th_note_grid[i] != 0:
 
                 favorite_weight = int((1 - ((num_favs * 2) / self._num_notes)) * 100)
+                if len(pitches) > 1 and pitches[pitch_pos - 1] in favorite_notes:
+                    favorite_weight -= 30
                 diatonic_weight = int((1 - ((num_diatonic / 2) / self._num_notes)) * 100)
 
                 # First check for favorite notes
@@ -249,6 +270,8 @@ class Melody(Scale.Scale):
                 else:
                     offset = random.choice([-2, -1, 1, 2])
                     pitches.append(favorite_notes[random.randrange(0,1)] + offset)
+
+                pitch_pos += 1
             
 
         return pitches

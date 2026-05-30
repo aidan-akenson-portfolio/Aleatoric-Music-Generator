@@ -16,34 +16,46 @@ SIGNATURE = 4
 class Player():
 
     def __init__(self):
+
+        random.seed()
+
         self._scale = Scale.Scale()
         self._verse_progression = Harmonizer.ChordProgression(self._scale)
         self._verse_melody = Melody.Melody()
 
+        time.sleep(0.05)
+
         self._chorus_progression = Harmonizer.ChordProgression(self._scale)
         self._chorus_melody = Melody.Melody()
+
+        time.sleep(0.05)
 
         self._bridge_progression = Harmonizer.ChordProgression(self._scale)
         self._bridge_melody = Melody.Melody()
 
+        time.sleep(0.05)
+
         self._song_structure = self._gen_structure()
 
-        self._chords = Synth.Synth()
+        self._chords = Synth.Synth(ir="1")
         self._chords.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=1))
         self._chords.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=16))
         self._chords.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=1))
         self._chords.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=60))
         self._chords.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=32))
         self._chords.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=127))
+        self._chords.handleMessage(mido.Message('control_change', control=consts.CUTOFF_CC, value=50))
+        self._chords.handleMessage(mido.Message('control_change', control=consts.Q_CC, value=64))
 
-        self._lead = Synth.Synth()
+        self._lead = Synth.Synth(ir="2")
         self._lead.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=64))
-        self._lead.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=16))
-        self._lead.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=0))
-        self._lead.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=32))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=64))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=64))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.DECAY_CC, value=64))
         self._lead.handleMessage(mido.Message('control_change', control=consts.ATTACK_CC, value=8))
         self._lead.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=64))
-        self._lead.handleMessage(mido.Message('control_change', control=consts.CUTOFF_CC, value=80))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.CUTOFF_CC, value=100))
+        self._lead.handleMessage(mido.Message('control_change', control=consts.Q_CC, value=64))
 
     def _gen_structure(self):
         song_structure = []
@@ -57,17 +69,17 @@ class Player():
             bridge_roll = bridge_chance * random.randrange(100)
 
             if verse_roll >= chorus_roll and verse_roll >= bridge_roll:
-                song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4])[0]])
+                song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============VERSE============"])
                 verse_chance = 0.0
                 chorus_chance += 0.3
                 bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
             elif chorus_roll >= bridge_roll:
-                song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4])[0]])
+                song_structure.append([self._chorus_progression, self._chorus_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============CHORUS============"])
                 verse_chance += 0.3
                 chorus_chance = 0.0
                 bridge_chance = 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
             else:
-                song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0]])
+                song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0], "\n============BRIDGE============"])
                 verse_chance += 0.1
                 chorus_chance += 0.6
                 bridge_chance = 0.0
@@ -76,20 +88,22 @@ class Player():
 
     def _play_section(self, progression, melody, repetitions):
 
-        print(progression._midi, progression._rhythm)
+        print("Chords:", progression._midi, "\nHarmonic Rhythm:", progression._rhythm)
+        print("Melody:", melody._pitches, "\nMelodic Rhythm:", melody.simple_grid, "\n")
 
         measure = 1
         chord = 1
         until_next_chord = 0
 
         for i in range(repetitions):
+                
+            last_note = -1
+            melody._pitch_index = 0
 
             for i in range(len(melody._8th_note_grid)):
 
-                # New chord time yay
+                # Chord performance
                 if until_next_chord == 0:
-
-                    print("Measure #", measure, "\t\tChord: ", progression._midi[chord - 1], sep="")
 
                     chord = chord % len(progression._midi)
                     measure = measure % len(progression._rhythm)
@@ -110,28 +124,21 @@ class Player():
 
                         measure += 1
 
-                last_note = -1
-                holding = False
 
+                # Melody performance
                 if melody._8th_note_grid[i] == 0:
-                    if holding and (last_note > 0 or last_note == melody._pitches[melody._pitch_index]):
+                    if last_note > 0:
                         self._lead.handleMessage(mido.Message(type='note_off', note=last_note))
-                        holding = False
+                        last_note = -1
+
                 if melody._8th_note_grid[i] == 1 or melody._8th_note_grid[i] == 2: 
-                    if holding:
+                    if last_note > 0:
                         self._lead.handleMessage(mido.Message(type='note_off', note=last_note))
-                        holding = False
-                    if melody._pitch_index >= len(melody._pitches):
-                        melody._pitch_index = 0
+
                     self._lead.handleMessage(mido.Message(type='note_on', note=melody._pitches[melody._pitch_index]))
                     last_note = melody._pitches[melody._pitch_index]
+
                     melody._pitch_index += 1
-                if melody._8th_note_grid[i] == 3:
-                    if not holding:
-                        melody._pitch_index += 1
-                        if melody._pitch_index >= len(melody._pitches):
-                            melody._pitch_index = 0
-                    holding = True
 
                 until_next_chord -= 1
 
@@ -139,7 +146,7 @@ class Player():
 
     def play(self):
         for i in range(len(self._song_structure)):
-            print("SONG STRUCTURE:", self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])
+            print(self._song_structure[i][3])
             self._play_section(self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])    
                 
                 

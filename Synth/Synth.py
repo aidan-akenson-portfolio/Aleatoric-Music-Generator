@@ -23,7 +23,7 @@ UNUSED = -1
 #   -         Filter (Filter)
 #
 class Synth(MIDI.MIDI_device):
-    def __init__(self, debug_mode: int = consts.DEBUG_MODE, amplitude: float = 1.0):
+    def __init__(self, debug_mode: int = consts.DEBUG_MODE, amplitude: float = 1.0, ir: str = consts.IR):
         
         start = time.perf_counter()
 
@@ -76,7 +76,7 @@ class Synth(MIDI.MIDI_device):
             env_timer = time.perf_counter() - start
 
         #Reverb
-        self._reverb = IR_Reverb.IR(ir=consts.IR)
+        self._reverb = IR_Reverb.IR(ir=ir)
         
         if self._debug_mode == 3:
             reverb_timer = time.perf_counter() - start
