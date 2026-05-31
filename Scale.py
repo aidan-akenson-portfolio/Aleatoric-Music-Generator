@@ -55,6 +55,9 @@ class Scale():
                 if self._triads[i] != None:
                     num_triads += 1
 
+        # For the iterator
+        self._iter_pos = 0
+
     # Generates a scale that:
     #   - Avoids large clusters of notes
     #   - Contains enough traditionally harmonic content 
@@ -326,6 +329,16 @@ class Scale():
         for n in range(self._scale_len):
             chords.append(self.diatonic_chord(n, extension=extension))
         return chords
+
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self._iter_pos < len(self._note_names):
+            result = self._note_names[self._iter_pos]
+            self._iter_pos += 1
+            return result
+        else:
+            raise StopIteration
 
 if __name__ == "__main__":
     scale_test = Scale()

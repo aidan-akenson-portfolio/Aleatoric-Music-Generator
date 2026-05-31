@@ -62,6 +62,7 @@ class Player():
         self._lead.handleMessage(mido.Message('control_change', control=consts.Q_CC, value=64))
 
         self._last_note = None
+        self._last_chord = None
 
     def _gen_structure(self):
         song_structure = []
@@ -80,19 +81,19 @@ class Player():
                 bridge_roll = bridge_chance * random.randrange(100)
 
                 if verse_roll >= chorus_roll and verse_roll >= bridge_roll:
-                    song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============VERSE============"])
+                    song_structure.append([self._verse_progression, self._verse_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============VERSE============", self._verse_scale])
                     verse_chance -= 0.8
                     chorus_chance += 0.3
                     bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
                     success = True
                 elif chorus_roll >= bridge_roll:
-                    song_structure.append([self._chorus_progression, self._chorus_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============CHORUS============"])
+                    song_structure.append([self._chorus_progression, self._chorus_melody, random.choices([2, 4], weights=[0.8, 0.2])[0], "\n============CHORUS============", self._chorus_scale])
                     verse_chance += 0.3
                     chorus_chance -= 0.8
                     bridge_chance += 0.4 * (i / num_sections)   # Bridges weighted towards later in the song
                     success = True
                 elif i < num_sections - 1:
-                    song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0], "\n============BRIDGE============"])
+                    song_structure.append([self._bridge_progression, self._bridge_melody, random.choices([1, 2])[0], "\n============BRIDGE============", self._bridge_scale])
                     verse_chance += 0.1
                     chorus_chance += 0.6
                     bridge_chance -= 0.8
@@ -123,10 +124,11 @@ class Player():
                     for n in progression._midi[chord - 1]:
                         self._chords.handleMessage(mido.Message(type='note_on', note=n))
                 
-                    if chord > 1:
-                        for n in progression._midi[chord - 2]:
+                    if self._last_chord is not None:
+                        for n in self._last_chord:
                             self._chords.handleMessage(mido.Message('note_off', note=n))
-
+                        self._last_chord = progression._midi[i - 1]
+                        
                     chord += 1
                     until_next_chord = 2 * SIGNATURE / progression._rhythm[measure - 1]
 
@@ -159,6 +161,10 @@ class Player():
     def play(self):
         for i in range(len(self._song_structure)):
             print(self._song_structure[i][3])
+            print("Scale:", end=" ")
+            for n in self._song_structure[i][4]:
+                print(n, end=" ")
+            print()
             self._play_section(self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])    
                 
                 
