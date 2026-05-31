@@ -104,7 +104,7 @@ class Player():
 
     def _play_section(self, progression, melody, repetitions):
 
-        print("Chords:", progression._midi, "\nHarmonic Rhythm:", progression._rhythm)
+        print("Chords:", progression._prog, "\nHarmonic Rhythm:", progression._rhythm)
         print("Melody:", melody._pitches, "\nMelodic Rhythm:", melody.simple_grid, "\n")
 
         measure = 1

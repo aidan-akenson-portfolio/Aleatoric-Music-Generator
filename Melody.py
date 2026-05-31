@@ -250,7 +250,7 @@ class Melody(Scale.Scale):
         for i in range(len(self._8th_note_grid)):
             if self._8th_note_grid[i] != 0:
 
-                favorite_weight = int((1 - ((num_favs * 2) / self._num_notes)) * 100)
+                favorite_weight = int((1 - ((num_favs * 4) / self._num_notes)) * 100)
                 if len(pitches) > 1 and pitches[pitch_pos - 1] in favorite_notes:
                     favorite_weight -= 30
                 diatonic_weight = int((1 - ((num_diatonic / 2) / self._num_notes)) * 100)
