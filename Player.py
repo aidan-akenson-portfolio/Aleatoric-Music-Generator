@@ -10,7 +10,7 @@ import random
 import mido
 import copy
 
-BPM = random.randrange(80, 150)
+BPM = random.randrange(80, 160)
 BEAT_INTERVAL = 1 / (BPM / 60)
 SIGNATURE = 4
 
