@@ -274,9 +274,9 @@ class Melody(Scale.Scale):
                 pitch_pos += 1
             
         # Last check, if melody is too low just raise it all up by an octave
-        if np.average(pitches) < 53:
-            for p in pitches:
-                p += 12
+        if np.average(np.array(pitches)) <= 53:
+            for p in range(len(pitches)):
+                pitches[p] += 12
 
         return pitches
                

@@ -8,6 +8,7 @@ from Synth.lib import consts
 import time
 import random
 import mido
+import copy
 
 BPM = random.randrange(80, 150)
 BEAT_INTERVAL = 1 / (BPM / 60)
@@ -31,9 +32,9 @@ class Player():
 
         time.sleep(0.05)
 
-        self._bridge_scale = self._verse_scale
+        self._bridge_scale = copy.deepcopy(self._verse_scale)
         if random.choice([0, 1]):
-            self._bridge_scale = self._chorus_scale
+            self._bridge_scale = copy.deepcopy(self._chorus_scale)
         self._bridge_progression = Harmonizer.ChordProgression(self._chorus_scale)
         self._bridge_melody = Melody.Melody()
 
@@ -128,7 +129,7 @@ class Player():
                         for n in self._last_chord:
                             self._chords.handleMessage(mido.Message('note_off', note=n))
                         self._last_chord = progression._midi[i - 1]
-                        
+
                     chord += 1
                     until_next_chord = 2 * SIGNATURE / progression._rhythm[measure - 1]
 

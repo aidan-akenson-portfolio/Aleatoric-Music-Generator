@@ -372,9 +372,11 @@ class ChordProgression():
         # Fix some clustering issues
         for i in midi_prog:
 
-            # If the root is not the lowest note, lower it an octave
+            # If the root is not the lowest note, raise the lower note
             if i[0] > i[1]:
-                i[0] -= 12
+                i[1] += 12
+            if i[0] > i[2]:
+                i[2] += 12
 
             # Check all min intervals and raise an octave where needed
             needs_raise = [False] * len(i)
