@@ -19,18 +19,22 @@ class Player():
 
         random.seed()
 
-        self._scale = Scale.Scale()
-        self._verse_progression = Harmonizer.ChordProgression(self._scale)
+        self._verse_scale = Scale.Scale()
+        self._verse_progression = Harmonizer.ChordProgression(self._verse_scale)
         self._verse_melody = Melody.Melody()
 
         time.sleep(0.05)
 
-        self._chorus_progression = Harmonizer.ChordProgression(self._scale)
+        self._chorus_scale = Scale.Scale()
+        self._chorus_progression = Harmonizer.ChordProgression(self._chorus_scale)
         self._chorus_melody = Melody.Melody()
 
         time.sleep(0.05)
 
-        self._bridge_progression = Harmonizer.ChordProgression(self._scale)
+        self._bridge_scale = self._verse_scale
+        if random.choice([0, 1]):
+            self._bridge_scale = self._chorus_scale
+        self._bridge_progression = Harmonizer.ChordProgression(self._chorus_scale)
         self._bridge_melody = Melody.Melody()
 
         time.sleep(0.05)
@@ -56,6 +60,8 @@ class Player():
         self._lead.handleMessage(mido.Message('control_change', control=consts.REVERB_CC, value=64))
         self._lead.handleMessage(mido.Message('control_change', control=consts.CUTOFF_CC, value=100))
         self._lead.handleMessage(mido.Message('control_change', control=consts.Q_CC, value=64))
+
+        self._last_note = None
 
     def _gen_structure(self):
         song_structure = []
@@ -102,7 +108,6 @@ class Player():
         measure = 1
         chord = 1
         until_next_chord = 0
-        last_note = -1
 
         for i in range(repetitions):
             melody._pitch_index = 0
@@ -134,16 +139,16 @@ class Player():
 
                 # Melody performance
                 if melody._8th_note_grid[i] == 0:
-                    if last_note > 0:
-                        self._lead.handleMessage(mido.Message(type='note_off', note=last_note))
-                        last_note = -1
+                    if self._last_note is not None:
+                        self._lead.handleMessage(mido.Message(type='note_off', note=self._last_note))
+                        self._last_note = None
 
                 if melody._8th_note_grid[i] == 1 or melody._8th_note_grid[i] == 2: 
-                    if last_note > 0:
-                        self._lead.handleMessage(mido.Message(type='note_off', note=last_note))
+                    if self._last_note is not None:
+                        self._lead.handleMessage(mido.Message(type='note_off', note=self._last_note))
 
                     self._lead.handleMessage(mido.Message(type='note_on', note=melody._pitches[melody._pitch_index]))
-                    last_note = melody._pitches[melody._pitch_index]
+                    self._last_note = melody._pitches[melody._pitch_index]
 
                     melody._pitch_index += 1
 
