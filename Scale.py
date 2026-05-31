@@ -338,6 +338,7 @@ class Scale():
             self._iter_pos += 1
             return result
         else:
+            self._iter_pos = 0
             raise StopIteration
 
 if __name__ == "__main__":

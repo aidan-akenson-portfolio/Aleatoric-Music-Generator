@@ -167,7 +167,7 @@ class Player():
                 print(n, end=" ")
             print()
             self._play_section(self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])    
-                
+        time.sleep(3)
                 
 
 
