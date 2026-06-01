@@ -7,7 +7,7 @@ from Synth.lib import consts
 class output:
 
     #Initialize pyaudio output stream
-    def __init__(self, debug_mode: int = consts.DEBUG_MODE):
+    def __init__(self, debug_mode: int = consts.DEBUG_MODE, wav: bool = False):
 
         self._p = pyaudio.PyAudio()     
         self._stream = None
@@ -26,6 +26,9 @@ class output:
 
         self._silence = np.zeros(consts.BUFFER_SIZE, np.int16)
 
+        self._wav_data = []
+        
+        self._wav = wav
         self.initStream(self._buffer_provider)
         
     #Don't leave the stream open!
@@ -65,7 +68,7 @@ class output:
                         print(f"\nDevice details: {device_info}\n")
                     break
 
-        # Define the callback
+        # Define the stream callback
         def stream_callback(in_data, frame_count, time_info, status):
             if not self._isPlaying or self._buffer_provider is None:
                 return (self._silence.tobytes(), pyaudio.paContinue)
@@ -73,6 +76,9 @@ class output:
             # Get fresh data from the buffer provider
             new_data = (self._buffer_provider() * 32767).astype(np.int16)
             new_data = new_data.flatten()
+
+            if self._wav:
+                self._wav_data.append(new_data)
             
             #if self._debug_mode == 2:
             #    print(f"Callback getting fresh data from provider")
@@ -81,6 +87,7 @@ class output:
             return (new_data.tobytes(), pyaudio.paContinue)
         
         # Create the stream
+        # Output to speakers
         if self._stream is None:
             self._stream = self._p.open(
                 format=pyaudio.paInt16, 
@@ -93,7 +100,7 @@ class output:
             )
             self._stream.start_stream()
             self._isPlaying = True
-        
+
     #Write to output stream using provided buffer
     def play(self, buffer_provider):
 
@@ -121,3 +128,6 @@ class output:
         if self._stream is not None and not self._stream.is_active():
             self._isPlaying = False
         return self._isPlaying
+    
+
+    

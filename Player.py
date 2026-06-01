@@ -3,20 +3,26 @@ import Scale
 import Melody
 import ntom
 from Synth import Synth
+from Synth import Output_Stream
 from Synth.lib import consts
 
 import time
 import random
 import mido
 import copy
+import argparse
+import soundfile as sf
+import numpy as np
 
 BPM = random.randrange(80, 160)
 BEAT_INTERVAL = 1 / (BPM / 60)
 SIGNATURE = 4
+MIN_SECTIONS = 1
+MAX_SECTIONS = 2
 
 class Player():
 
-    def __init__(self):
+    def __init__(self, wav: bool = False):
 
         random.seed()
 
@@ -42,7 +48,7 @@ class Player():
 
         self._song_structure = self._gen_structure()
 
-        self._chords = Synth.Synth(ir="1")
+        self._chords = Synth.Synth(ir="1", wav=wav)
         self._chords.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=1))
         self._chords.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=16))
         self._chords.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=1))
@@ -52,7 +58,7 @@ class Player():
         self._chords.handleMessage(mido.Message('control_change', control=consts.CUTOFF_CC, value=50))
         self._chords.handleMessage(mido.Message('control_change', control=consts.Q_CC, value=64))
 
-        self._lead = Synth.Synth(ir="2")
+        self._lead = Synth.Synth(ir="2", wav=wav)
         self._lead.handleMessage(mido.Message('control_change', control=consts.WAVE_CC, value=64))
         self._lead.handleMessage(mido.Message('control_change', control=consts.RELEASE_CC, value=64))
         self._lead.handleMessage(mido.Message('control_change', control=consts.SUSTAIN_CC, value=64))
@@ -65,9 +71,11 @@ class Player():
         self._last_note = None
         self._last_chord = None
 
+        self._wav = wav
+
     def _gen_structure(self):
         song_structure = []
-        num_sections = random.randrange(3, 8)
+        num_sections = random.randrange(MIN_SECTIONS, MAX_SECTIONS)
         verse_chance = 0.8
         chorus_chance = 0.2
         bridge_chance = 0.0
@@ -167,12 +175,31 @@ class Player():
                 print(n, end=" ")
             print()
             self._play_section(self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])    
-        time.sleep(3)
-                
 
+        # Writes wav
+        if self._wav:
+            print("=====WRITING WAV FILE=====")
+            self.write()
+
+        time.sleep(1)
+
+    # Consolidates stored data from synths into a wav file        
+    def write(self):
+        # FIXME testing with seperate files first
+        print("writing chords")
+        wav_data = (np.array(copy.deepcopy(self._chords._output._wav_data))).flatten()
+        self._chords._output.stop()
+        print(wav_data)
+        sf.write(file="Aleatoric_Output.wav", samplerate=48000, data=np.array(wav_data, dtype=np.int16))
 
 
 
 if __name__ == "__main__":
-    player = Player()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-w', '--wav', action='store_true')   
+    args = parser.parse_args()
+
+    #player = Player(args.wav)
+    player = Player(wav=True)
     player.play()

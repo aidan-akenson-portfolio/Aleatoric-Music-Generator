@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import copy
+import soundfile as sf
 
 import Synth.MIDI_input as MIDI
 import Synth.Output_Stream as Output_Stream 
@@ -23,7 +24,7 @@ UNUSED = -1
 #   -         Filter (Filter)
 #
 class Synth(MIDI.MIDI_device):
-    def __init__(self, debug_mode: int = consts.DEBUG_MODE, amplitude: float = 1.0, ir: str = consts.IR):
+    def __init__(self, debug_mode: int = consts.DEBUG_MODE, amplitude: float = 1.0, ir: str = consts.IR, wav: bool = False):
         
         start = time.perf_counter()
 
@@ -97,8 +98,9 @@ class Synth(MIDI.MIDI_device):
         if self._debug_mode == 3:
             vis_timer = time.perf_counter() - start
 
-        #Initialize output stream
-        self._output = Output_Stream.output(self._debug_mode)
+        #Sync up with output stream
+        self._output = Output_Stream.output(debug_mode, wav)
+
         #Only use debug buffer providers if debug enabled
         if self._debug_mode == 3:
             if consts.FILTER_ON == True:
