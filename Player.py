@@ -17,8 +17,8 @@ import numpy as np
 BPM = random.randrange(80, 160)
 BEAT_INTERVAL = 1 / (BPM / 60)
 SIGNATURE = 4
-MIN_SECTIONS = 1
-MAX_SECTIONS = 2
+MIN_SECTIONS = 3
+MAX_SECTIONS = 8
 
 class Player():
 
@@ -176,21 +176,36 @@ class Player():
             print()
             self._play_section(self._song_structure[i][0], self._song_structure[i][1], self._song_structure[i][2])    
 
+        time.sleep(3)
+
         # Writes wav
         if self._wav:
             print("=====WRITING WAV FILE=====")
             self.write()
 
-        time.sleep(1)
-
     # Consolidates stored data from synths into a wav file        
     def write(self):
-        # FIXME testing with seperate files first
-        print("writing chords")
-        wav_data = (np.array(copy.deepcopy(self._chords._output._wav_data))).flatten()
+
+        print("Writing to Aleatoric_Output.wav")
+
+        def trim_leading_silence(data, threshold: int=10):
+            mask = np.any(np.abs(data) > threshold, axis=1)
+            first_sound = np.argmax(mask)
+            return data[first_sound:]
+        
+        self._chords._output.consolidate()
+        self._lead._output.consolidate()
         self._chords._output.stop()
-        print(wav_data)
-        sf.write(file="Aleatoric_Output.wav", samplerate=48000, data=np.array(wav_data, dtype=np.int16))
+        self._lead._output.stop()
+        wav_data_chords = trim_leading_silence(np.array(copy.deepcopy(self._chords._output._wav_data), dtype=np.int16))
+        wav_data_lead = trim_leading_silence(np.array(copy.deepcopy(self._lead._output._wav_data), dtype=np.int16))
+        new_size = max(len(wav_data_chords), len(wav_data_lead))
+
+        wav_data_chords = np.resize(wav_data_chords, (new_size, 2))
+        wav_data_lead = np.resize(wav_data_lead, (new_size, 2))
+
+        wav_data = np.add(wav_data_chords, wav_data_lead)
+        sf.write(file="Aleatoric_Output.wav", samplerate=48000, data=wav_data)
 
 
 

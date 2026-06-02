@@ -9,11 +9,7 @@
 - The melody and harmony play on independent synths. The synth for the chords will be a sine wave with moderately slow attack, reverb at 100% wet, and a lowpass filter. The synth for the melody is a saw wave with faster attack, reverb at 50% wet, and a lowpass filter with a higher cutoff than that of the chords.
 - Tempo is randomized between 80 and 160 BPM.
 - MIDI input is active during playback, so users may play along using the melody synth if they wish.
-
-
-## TO-DO:
-- Allow for .wav writing directly from the program
-
+- Output can additionally be written to a file using the -w or --wav flags. This happens after audio playback.
 
 ## Limitations:
 - The melody generation is weak. No contour logic exists, so melodies still feel a bit aimless. Additionally, pitches are generated sequentially, meaning that the favorite notes tend to be frontloaded, producing unnatural repetition in many outputs.

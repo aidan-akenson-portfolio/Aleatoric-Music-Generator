@@ -1,5 +1,7 @@
 import pyaudio
 import numpy as np
+import threading
+import queue
 
 from Synth.lib import consts
 
@@ -26,9 +28,10 @@ class output:
 
         self._silence = np.zeros(consts.BUFFER_SIZE, np.int16)
 
-        self._wav_data = []
-        
+        self._wav_data = np.array(([0], [0])).T
+        self._wav_chunks = []
         self._wav = wav
+        self._buffer_queue = queue.Queue()
         self.initStream(self._buffer_provider)
         
     #Don't leave the stream open!
@@ -70,15 +73,16 @@ class output:
 
         # Define the stream callback
         def stream_callback(in_data, frame_count, time_info, status):
-            if not self._isPlaying or self._buffer_provider is None:
+            if self._buffer_provider is None:
                 return (self._silence.tobytes(), pyaudio.paContinue)
             
             # Get fresh data from the buffer provider
             new_data = (self._buffer_provider() * 32767).astype(np.int16)
-            new_data = new_data.flatten()
-
+            
             if self._wav:
-                self._wav_data.append(new_data)
+                self._buffer_queue.put(new_data.copy())
+
+            new_data = new_data.flatten()
             
             #if self._debug_mode == 2:
             #    print(f"Callback getting fresh data from provider")
@@ -86,9 +90,17 @@ class output:
             
             return (new_data.tobytes(), pyaudio.paContinue)
         
+        def record_loop():
+            while self._isPlaying:
+                try:
+                    new_data = self._buffer_queue.get(timeout=1.0)
+                    self._wav_chunks.append(new_data)
+                except queue.Empty:
+                    continue
+
         # Create the stream
-        # Output to speakers
         if self._stream is None:
+            self._isPlaying = True
             self._stream = self._p.open(
                 format=pyaudio.paInt16, 
                 channels=2,
@@ -99,7 +111,17 @@ class output:
                 frames_per_buffer=consts.BUFFER_SIZE
             )
             self._stream.start_stream()
+        # Start the record thread
+        if self._wav:
             self._isPlaying = True
+            self._record_thread = threading.Thread(target=record_loop, daemon=True)
+            self._record_thread.start()
+
+    # Go from chunks to wav data
+    def consolidate(self):
+        if self._wav_chunks:
+            self._wav_data = np.vstack(self._wav_chunks)
+            self._wav_chunks = []
 
     #Write to output stream using provided buffer
     def play(self, buffer_provider):
@@ -117,11 +139,13 @@ class output:
         self._current_data = self._silence
         #if self._debug_mode > 0:
         #    print("Stopping stream")
+        self._isPlaying = False
         if self._stream is not None:
             self._stream.stop_stream()
             self._stream.close()
             self._stream = None
-        self._isPlaying = False
+        if hasattr(self, '_record_thread') and self._record_thread.is_alive():
+            self._record_thread.join()
 
     def isPlaying(self) -> bool:
         # Also check if stream is active

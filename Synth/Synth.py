@@ -99,6 +99,7 @@ class Synth(MIDI.MIDI_device):
             vis_timer = time.perf_counter() - start
 
         #Sync up with output stream
+        self._wav = wav
         self._output = Output_Stream.output(debug_mode, wav)
 
         #Only use debug buffer providers if debug enabled
@@ -158,7 +159,7 @@ class Synth(MIDI.MIDI_device):
 
             self.addVoice(message.note)
 
-            if not self._output._isPlaying:
+            if not self._wav and not self._output._isPlaying:
                 self._output._isPlaying = True
 
         #Trigger ADSR release
@@ -168,7 +169,7 @@ class Synth(MIDI.MIDI_device):
 
             #If no voices are active, stop playing
             active_voices = [v for v in self._voices if v != UNUSED]
-            if not active_voices:
+            if not self._wav and not active_voices:
                 self._output._isPlaying = False
 
         # Update any parameters mapped to CC
