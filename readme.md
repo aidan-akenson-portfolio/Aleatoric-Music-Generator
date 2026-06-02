@@ -11,7 +11,7 @@
 - The melody and harmony play on independent synths. The synth for the chords will be a sine wave with moderately slow attack, reverb at 100% wet, and a lowpass filter. The synth for the melody is a saw wave with faster attack, reverb at 50% wet, and a lowpass filter with a higher cutoff than that of the chords.
 - Tempo is randomized between 80 and 160 BPM.
 - MIDI input is active during playback, so users may play along using the melody synth if they wish.
-- Output can additionally be written to a file using the -w or --wav flags. This happens after audio playback.
+- Output can additionally be written to a file using the -w or --wav flags. This happens after audio playback, but the extra writing can occasionally cause underruns during playback, so for better performance keep the flag off.
 
 ## Limitations:
 - For some reason, sometimes the first time I run Player.py after opening up my IDE I get a keyboard interrupt after a second or so, despite my hands being fully off of the keyboard. I do not know what is causing this, but if it happens know it should work fine in consecutive runs.
