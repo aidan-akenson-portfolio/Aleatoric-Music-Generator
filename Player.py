@@ -167,6 +167,14 @@ class Player():
 
                 time.sleep(BEAT_INTERVAL / 2)
 
+        # Let go of all notes before moving on
+        if self._last_note is not None:
+            self._lead.handleMessage(mido.Message(type='note_off', note=self._last_note))
+        if self._last_chord is not None:
+            for n in self._last_chord:
+                self._chords.handleMessage(mido.Message('note_off', note=n))
+
+
     def play(self):
         for i in range(len(self._song_structure)):
             print(self._song_structure[i][3])
@@ -186,7 +194,7 @@ class Player():
     # Consolidates stored data from synths into a wav file        
     def write(self):
 
-        print("Writing to Aleatoric_Output.wav")
+        print("Writing to ALEATORIC.wav")
 
         def trim_leading_silence(data, threshold: int=10):
             mask = np.any(np.abs(data) > threshold, axis=1)
@@ -205,7 +213,7 @@ class Player():
         wav_data_lead = np.resize(wav_data_lead, (new_size, 2))
 
         wav_data = np.add(wav_data_chords, wav_data_lead)
-        sf.write(file="Aleatoric_Output.wav", samplerate=48000, data=wav_data)
+        sf.write(file="ALEATORIC.wav", samplerate=48000, data=wav_data)
 
 
 
@@ -215,6 +223,5 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--wav', action='store_true')   
     args = parser.parse_args()
 
-    #player = Player(args.wav)
-    player = Player(wav=True)
+    player = Player(args.wav)
     player.play()

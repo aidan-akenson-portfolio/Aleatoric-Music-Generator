@@ -1,3 +1,5 @@
+# Run using ./Player.py
+
 ## This project will randomly generate a song with the following features:  
 - The song will be broken up into some combination of verses, choruses, and bridges. Some songs may not include a bridge. 
 - Two scales will be generated, one for the verse, and one for the chorus. The bridge will pick one of these scales to use. Each scale includes 5-7 notes, and is generated in such a way as to ensure a certain number of triads exist for use in harmony. 
@@ -12,6 +14,7 @@
 - Output can additionally be written to a file using the -w or --wav flags. This happens after audio playback.
 
 ## Limitations:
+- For some reason, sometimes the first time I run Player.py after opening up my IDE I get a keyboard interrupt after a second or so, despite my hands being fully off of the keyboard. I do not know what is causing this, but if it happens know it should work fine in consecutive runs.
 - The melody generation is weak. No contour logic exists, so melodies still feel a bit aimless. Additionally, pitches are generated sequentially, meaning that the favorite notes tend to be frontloaded, producing unnatural repetition in many outputs.
 - The scales, despite attempts to the contrary, seem to generate with augmented and diminished chords for a tonic on several occasions. Line 229 of Scale.py seems to expressly prohibit this, so I'm not sure why this is the case.
 - No bass or rhythm instruments have been implemented.
